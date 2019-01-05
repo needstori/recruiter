@@ -13,8 +13,19 @@ function init(self)
 	scroll_node = gui.get_node("recruit_scroll_move")
 	-- Create new node and put it in the top left corner of scroll pane
 	new_text_node = gui.new_text_node(vmath.vector3(0, 0, 0), self.recruits[1])
+	-- Set node parent
 	gui.set_parent(new_text_node, scroll_node, false)
-	gui.set_position(new_text_node, position)
+	-- Set node scale
+	scroll_parent_scale = gui.get_scale(gui.get_parent(scroll_node))
+	scroll_node_scale = gui.get_scale(scroll_node)
+	new_node_scale = vmath.vector3(1 / scroll_node_scale.x / scroll_parent_scale.x, 1 / scroll_node_scale.y / scroll_parent_scale.y, 0)
+	gui.set_scale(new_text_node, new_node_scale)
+	-- Set node location
+	new_node_x = (gui.get_size(scroll_node).x / 2  - gui.get_size(new_text_node).x / 2 * new_node_scale.x) * -1
+	new_node_y = (gui.get_size(scroll_node).y / 2 - gui.get_size(new_text_node).y / 2 * new_node_scale.y)
+	new_node_pos = vmath.vector3(new_node_x, new_node_y, 0)
+	print(new_node_pos)
+	gui.set_position(new_text_node, new_node_pos)
 end
 
 function final(self)
