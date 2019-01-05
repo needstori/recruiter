@@ -1,0 +1,107 @@
+local combat_entity = require "battle_system.combat_entity"
+local table_utils = require "utils.table_utils"
+
+-- Monster and recruit instances
+local monsters = {}
+local recruits = {}
+
+-- Time counter
+local time_passed
+local second_passed
+
+-- Battle state recording
+local battle_complete
+
+function attack_random(current_combat_entity, targets)
+	if #targets > 0 then
+		target_index = math.random(#targets)
+		target_combat_entity = targets[target_index]
+		current_combat_entity:do_attack(target_combat_entity)
+		if not targets[target_index]:is_alive() then
+			table.remove(targets, target_index)
+		end
+	end
+end
+
+function battle_step()
+	local all_combat_entities = {}
+	table_utils:table_append(all_combat_entities, recruits)
+	table_utils:table_append(all_combat_entities, monsters)
+
+	table.sort(all_combat_entities, combat_entity().compare_speed)
+	for index, current_combat_entity in ipairs(all_combat_entities) do
+		-- Pick a random opponent and attack it
+		if table_utils:table_contains(monsters, current_combat_entity) then
+			-- If combat_entity is monster then attack a recruit
+			attack_random(current_combat_entity, recruits)
+		else
+			attack_random(current_combat_entity, monsters)
+		end
+	end
+	print(string.format("Remaining: Monsters: %d; Recruits: %d", #monsters, #recruits))
+end
+
+function init(self)
+	-- Add initialization code here
+	-- Remove this function if not needed
+	-- Initilaise time counter
+	time_passed = 0
+	second_passed = 0
+
+	--Initialise battle state
+	battle_complete = false
+	
+	-- Add 5 monsters to monsters table
+	for i=1, 5, 1 do
+		table.insert(monsters, combat_entity(50, 10, 8, 10, "Big Bad"))
+	end
+	-- Add 4 recruits to recruits table
+	for i=1, 4, 1 do
+		table.insert(recruits, combat_entity(50, 20, 0, 5, "Small Good"))
+	end
+
+	print(string.format("Battle between monsters and recruits"))
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Remove this function if not needed
+	-- Recruit attack monster
+	second_passed = second_passed + dt
+	time_passed = time_passed + dt
+	if not battle_complete and second_passed >= 1 then
+		battle_step()
+
+		--Check for battle completion
+		if #monsters == 0 then
+			battle_complete = true
+			print("Recruits win")
+		elseif #recruits == 0 then
+			battle_complete = true
+			print("Monsters win")
+		end
+		
+		print(string.format("Game has been running for %f", time_passed))
+		second_passed = 0
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
